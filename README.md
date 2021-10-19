@@ -13,15 +13,15 @@ AWS - The YAML way
 Why not :)
 ## How?
 
-- For (1), there's AWS Controllers for Kubernetes (ACK) or maybe [Crossplane](https://crossplane.io/)
-- For (2), it's quite straight forward.
-- For (3), I'm thinking Kyverno or OpenPolicyAgent.
+- For (1), there's [AWS Controllers for Kubernetes](https://aws.amazon.com/blogs/containers/aws-controllers-for-kubernetes-ack/) (ACK) or maybe [Crossplane](https://crossplane.io/)
+- For (2), it's quite straight forward. If we can express AWS resources using Kubernetes CRDs, then it's done.
+- For (3), I'm thinking [Kyverno](https://kyverno.io/) or [OpenPolicyAgent](https://www.openpolicyagent.org).
 
 ## Let's do it
 
 ### Setup the env
 
-I will skip the part where you setup AWS CLI and an EKS cluster Suppose that is all set and done. If not, follow the brief instructions below to setup a new EKS cluster. The easiest way IMO is to use `eksctl` from Weaveworks.
+I will skip the part where you setup AWS CLI and an EKS cluster Suppose that is all set and done. If not, follow the brief instructions below to setup a new EKS cluster. The easiest way IMO is to use [eksctl](https://eksctl.io/) from Weaveworks.
 
 ```sh
 aws ec2 create-key-pair --region ap-southeast-1 --key-name my-yaml-eks-key
