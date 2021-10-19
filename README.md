@@ -5,7 +5,8 @@ AWS - The YAML way
 ## Motivation
 
 1. I want to manage AWS infrastructure with YAML
-2. I want to be able to defines rules to govern my cloud resources
+2. I want to use Kubernetes RBAC for authorization
+3. I want to be able to defines rules to govern my cloud resources
 
 ## But why?
 
@@ -13,7 +14,8 @@ Why not :)
 ## How?
 
 - For (1), there's AWS Controllers for Kubernetes (ACK) or maybe [Crossplane](https://crossplane.io/)
-- For (2), I'm thinking Kyverno or OpenPolicyAgent.
+- For (2), it's quite straight forward.
+- For (3), I'm thinking Kyverno or OpenPolicyAgent.
 
 ## Let's do it
 
@@ -35,7 +37,7 @@ eksctl create cluster \
 
 Wait for a bit for the cluster to be provisioned.
 
-There will be 2 CloudFormation stacks being provisioned so it might take awhile. If sth goes wrong (disconnection, etc..), you can check with this command below
+There will be 2 CloudFormation stacks being provisioned so it might take awhile. If something goes wrong (disconnection, etc..), you can check with this command below
 
 ```sh
 eksctl utils describe-stacks --region=ap-southeast-1 --cluster=my-yaml-eks
@@ -82,9 +84,9 @@ Once it's done. Make sure the cluster is accessible
 
 ### Setup Crossplane
 
-At first, I plan to use ACK but then I remember a friend of mine talked about Crossplane the other day so I want to give it a try. Bonus point, it's compatible with multiple cloud providers :)
+At first, I plan to use [ACK](https://aws.amazon.com/blogs/containers/aws-controllers-for-kubernetes-ack/) but then I remember a friend of mine talked about Crossplane the other day so I want to give it a try. Bonus point, it works with multiple cloud providers :)
 
-I'm going to use Helm here so make sure you have it installed. I just blindly follow the official [installation instructions on Crossplane website here](https://crossplane.io/docs/v1.4/getting-started/install-configure.html).
+I'm going to use Helm so make sure you have it installed. Simply follow the official [installation instructions on Crossplane website here](https://crossplane.io/docs/v1.4/getting-started/install-configure.html).
 
 As of this post, `1.4.1` is the latest chart version.
 
@@ -140,7 +142,7 @@ spec:
   package: crossplane/provider-aws:alpha
 ```
 
-After the provider is ready, apply this next. You need to do this in 2 steps because otherwise, `ProviderConfig` kind is unknown.
+After the provider is ready, apply the following next. You need to do this in 2 steps because otherwise, `ProviderConfig` kind is unknown.
 
 ```yaml
 apiVersion: v1
@@ -193,13 +195,15 @@ spec:
     acl: private
 ```
 
+After a few seconds, the resource status will change to `Ready` and `Synced`.
+
 ![](/images/s3-created.png)
 
 So that's cool. What's next? Let's trying to use OPA or Kyverno to set some rules for our newly created resources.
 
 ### Setup Kyverno
 
-I'm gonna go with Kyverno here. No particular reason. I just feel OPA is too main stream :D
+I'm gonna go with Kyverno here. No particular reason. I just feel OPA is too mainstream. The concept with OPA is similar. You can take it as homework for your lab session.
 
 Let's install Kyverno with Helm
 
@@ -210,7 +214,7 @@ helm install kyverno-crds kyverno/kyverno-crds --namespace kyverno --create-name
 helm install kyverno kyverno/kyverno --namespace kyverno
 ```
 
-Now, let's write a simple policy. Say, we don't want to allow creating S3 bucket anywhere else except in `ap-southeast-1` region.
+Now, let's write a simple policy. Say, we don't want to allow creating S3 bucket anywhere except in `ap-southeast-1` region.
 
 ```yaml
 apiVersion: kyverno.io/v1
@@ -263,6 +267,7 @@ kubectl create -f bad-s3.yaml
 
 ![](/images/bad-s3.png)
 
+Now, the policy we have here is very simple but you can do all kind of stuff with Kyverno cluster policy. It would be a cool weekend hack to convert all rules you have currently to Kyverno cluster policy. That sounds like tons of fun :)
 ## Conclusion
 
 I'm not going to tell you should start doing this but it's a feasible way of managing infrastructure at small scale.
